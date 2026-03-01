@@ -1,99 +1,31 @@
-"use client";
+import type { Metadata } from "next";
+import { getMe } from "@/lib/api/serverApi";
+import ProfileClient from "./Profile.client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { getMe, updateMe } from "@/lib/api/clientApi";
-import { useAuthStore } from "@/lib/store/authStore";
-import css from "./EditProfile.module.css";
+export const metadata: Metadata = {
+  title: "Profile | NoteHub",
+  description: "View and manage your NoteHub profile",
+  openGraph: {
+    title: "Profile | NoteHub",
+    description: "View and manage your NoteHub profile",
+    url: "https://notehub.example.com/profile",
+    images: [
+      {
+        url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+        width: 1200,
+        height: 630,
+        alt: "NoteHub",
+      },
+    ],
+  },
+};
 
-export default function EditProfilePage() {
-  const router = useRouter();
-  const { setUser } = useAuthStore();
+export default async function ProfilePage() {
+  const user = await getMe();
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [avatar, setAvatar] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const user = await getMe();
-        setUsername(user.username);
-        setEmail(user.email);
-        setAvatar(user.avatar);
-      } catch (error) {
-        console.error("Failed to load profile:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    try {
-      const updatedUser = await updateMe({ username });
-      setUser(updatedUser);
-      router.push("/profile");
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-    }
-  };
-
-  const handleCancel = () => {
-    router.push("/profile");
-  };
-
-  if (isLoading) {
-    return <p>Loading...</p>;
+  if (!user) {
+    return <p>Unable to load profile</p>;
   }
 
-  return (
-    <main className={css.mainContent}>
-      <div className={css.profileCard}>
-        <h1 className={css.formTitle}>Edit Profile</h1>
-
-        <Image
-          src={avatar || "https://via.placeholder.com/120"}
-          alt="User Avatar"
-          width={120}
-          height={120}
-          className={css.avatar}
-        />
-
-        <form className={css.profileInfo} onSubmit={handleSubmit}>
-          <div className={css.usernameWrapper}>
-            <label htmlFor="username">Username:</label>
-            <input
-              id="username"
-              type="text"
-              className={css.input}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-
-          <p>Email: {email}</p>
-
-          <div className={css.actions}>
-            <button type="submit" className={css.saveButton}>
-              Save
-            </button>
-            <button
-              type="button"
-              className={css.cancelButton}
-              onClick={handleCancel}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </main>
-  );
+  return <ProfileClient user={user} />;
 }

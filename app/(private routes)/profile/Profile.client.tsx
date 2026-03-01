@@ -9,10 +9,6 @@ interface ProfileClientProps {
   user: User;
 }
 
-interface ProfileClientProps {
-  user: User;
-}
-
 export default function ProfileClient({ user }: ProfileClientProps) {
   return (
     <main className={css.mainContent}>
