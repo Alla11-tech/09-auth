@@ -1,42 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { api } from '../../api';
+import { cookies } from 'next/headers';
+import { isAxiosError } from 'axios';
+import { logErrorResponse } from '../../_utils/utils';
 
-const BACKEND_URL = "https://notehub-api.goit.study";
-
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const cookies = request.headers.get("cookie");
+    const cookieStore = await cookies();
 
-    const response = await fetch(`${BACKEND_URL}/auth/logout`, {
-      method: "POST",
+    const accessToken = cookieStore.get('accessToken')?.value;
+    const refreshToken = cookieStore.get('refreshToken')?.value;
+
+    await api.post('auth/logout', null, {
       headers: {
-        Cookie: cookies || "",
+        Cookie: `accessToken=${accessToken}; refreshToken=${refreshToken}`,
       },
-      credentials: "include",
     });
 
-    if (!response.ok) {
+    cookieStore.delete('accessToken');
+    cookieStore.delete('refreshToken');
+
+    return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });
+  } catch (error) {
+    if (isAxiosError(error)) {
+      logErrorResponse(error.response?.data);
       return NextResponse.json(
-        { message: "Logout failed" },
-        { status: response.status }
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
       );
     }
-
-    const setCookieHeader = response.headers.get("set-cookie");
-
-    const nextResponse = NextResponse.json(
-      { message: "Logged out successfully" },
-      { status: 200 }
-    );
-
-    if (setCookieHeader) {
-      nextResponse.headers.set("set-cookie", setCookieHeader);
-    }
-
-    return nextResponse;
-  } catch {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    logErrorResponse({ message: (error as Error).message });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

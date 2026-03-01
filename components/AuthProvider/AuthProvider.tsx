@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
-import { checkSession, logout } from "@/lib/api/clientApi";
+import { checkSession, logout, getUser } from "@/lib/api/clientApi";
 
 const PRIVATE_ROUTES = ["/profile", "/notes"];
 
@@ -25,10 +25,21 @@ export default function AuthProvider({
 
       if (isPrivateRoute) {
         try {
-          const user = await checkSession();
-          if (user) {
-            setUser(user);
+          // Перевіряємо сесію
+          const session = await checkSession();
+          
+          if (session) {
+            // Якщо сесія валідна, отримуємо дані користувача
+            const user = await getUser();
+            if (user) {
+              setUser(user);
+            } else {
+              await logout();
+              clearAuth();
+              router.push("/sign-in");
+            }
           } else {
+            // Якщо сесії немає - виходимо
             await logout();
             clearAuth();
             router.push("/sign-in");

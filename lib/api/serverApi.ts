@@ -1,17 +1,13 @@
 import { cookies } from "next/headers";
-import axios from "axios";
+import { AxiosResponse } from "axios";
+import { api } from "./api";
 import type { Note, NoteTag } from "@/types/note";
 import type { User } from "@/types/user";
 
-const baseURL = "https://notehub-api.goit.study";
-
 async function getHeaders() {
   const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join("; ");
-
+  const cookieHeader = cookieStore.toString();
+  
   return {
     Cookie: cookieHeader,
   };
@@ -35,7 +31,7 @@ export async function fetchNotes(
   params: FetchNotesParams
 ): Promise<FetchNotesResponse> {
   const headers = await getHeaders();
-  const response = await axios.get(`${baseURL}/notes`, {
+  const response = await api.get("/notes", {
     params: {
       page: params.page,
       perPage: params.perPage,
@@ -49,7 +45,7 @@ export async function fetchNotes(
 
 export async function fetchNoteById(id: string): Promise<Note> {
   const headers = await getHeaders();
-  const response = await axios.get(`${baseURL}/notes/${id}`, { headers });
+  const response = await api.get(`/notes/${id}`, { headers });
   return response.data;
 }
 
@@ -58,18 +54,29 @@ export async function fetchNoteById(id: string): Promise<Note> {
 export async function getMe(): Promise<User | null> {
   try {
     const headers = await getHeaders();
-    const response = await axios.get(`${baseURL}/users/me`, { headers });
+    const response = await api.get("/users/me", { headers });
     return response.data;
   } catch {
     return null;
   }
 }
 
-export async function checkSession(): Promise<User | null> {
+export async function getUser(): Promise<User | null> {
   try {
     const headers = await getHeaders();
-    const response = await axios.get(`${baseURL}/auth/session`, { headers });
-    return response.data || null;
+    const response = await api.get("/users/me", { headers });
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
+// ✅ Повертає повний response Axios
+export async function checkSession(): Promise<AxiosResponse | null> {
+  try {
+    const headers = await getHeaders();
+    const response = await api.get("/auth/session", { headers });
+    return response;
   } catch {
     return null;
   }
