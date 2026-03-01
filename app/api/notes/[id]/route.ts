@@ -60,7 +60,6 @@ export async function DELETE(
   }
 }
 
-// ✅ ДОДАНО PATCH метод
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

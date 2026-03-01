@@ -25,11 +25,9 @@ export default function AuthProvider({
 
       if (isPrivateRoute) {
         try {
-          // 1. Спочатку перевіряємо сесію
           const isSessionValid = await checkSession();
           
           if (isSessionValid) {
-            // 2. Якщо сесія валідна, отримуємо дані користувача
             const user = await getUser();
             
             if (user) {
@@ -40,7 +38,6 @@ export default function AuthProvider({
               router.push("/sign-in");
             }
           } else {
-            // Якщо сесії немає - виходимо
             await logout();
             clearAuth();
             router.push("/sign-in");
