@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
@@ -57,7 +57,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

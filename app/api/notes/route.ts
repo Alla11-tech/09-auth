@@ -2,33 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = "https://notehub-api.goit.study";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest) {
   try {
-    const { id } = await params;
     const cookies = request.headers.get("cookie");
+    const { searchParams } = new URL(request.url);
 
-    const response = await fetch(`${BACKEND_URL}/notes/${id}`, {
-      method: "GET",
-      headers: {
-        Cookie: cookies || "",
-      },
-      credentials: "include",
-    });
+    const queryString = searchParams.toString();
+
+    const response = await fetch(
+      `${BACKEND_URL}/notes${queryString ? `?${queryString}` : ""}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: cookies || "",
+        },
+        credentials: "include",
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       return NextResponse.json(
-        { message: data.message || "Failed to fetch note" },
+        { message: data.message || "Failed to fetch notes" },
         { status: response.status }
       );
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
@@ -36,19 +38,18 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest) {
   try {
-    const { id } = await params;
     const cookies = request.headers.get("cookie");
+    const body = await request.json();
 
-    const response = await fetch(`${BACKEND_URL}/notes/${id}`, {
-      method: "DELETE",
+    const response = await fetch(`${BACKEND_URL}/notes`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Cookie: cookies || "",
       },
+      body: JSON.stringify(body),
       credentials: "include",
     });
 
@@ -56,13 +57,13 @@ export async function DELETE(
 
     if (!response.ok) {
       return NextResponse.json(
-        { message: data.message || "Failed to delete note" },
+        { message: data.message || "Failed to create note" },
         { status: response.status }
       );
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
