@@ -74,7 +74,12 @@ export async function logout(): Promise<void> {
 export async function checkSession(): Promise<User | null> {
   try {
     const response = await api.get("/auth/session");
-    return response.data?.success ? {} as User : null;
+    // Якщо success: true, отримуємо дані користувача
+    if (response.data?.success) {
+      const userResponse = await api.get("/users/me");
+      return userResponse.data;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -85,16 +90,6 @@ export async function checkSession(): Promise<User | null> {
 export async function getMe(): Promise<User> {
   const response = await api.get("/users/me");
   return response.data;
-}
-
-// ✅ ДОДАНО
-export async function getUser(): Promise<User | null> {
-  try {
-    const response = await api.get("/users/me");
-    return response.data;
-  } catch {
-    return null;
-  }
 }
 
 export interface UpdateMePayload {

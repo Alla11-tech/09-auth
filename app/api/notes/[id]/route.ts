@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-
-const BACKEND_URL = "https://notehub-api.goit.study";
+import { NextRequest, NextResponse } from 'next/server';
+import { api } from '../../api';
+import { cookies } from 'next/headers';
+import { isAxiosError } from 'axios';
+import { logErrorResponse } from '../../_utils/utils';
 
 export async function GET(
   request: NextRequest,
@@ -8,31 +10,25 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const cookies = request.headers.get("cookie");
+    const cookieStore = await cookies();
 
-    const response = await fetch(`${BACKEND_URL}/notes/${id}`, {
-      method: "GET",
+    const res = await api.get(`/notes/${id}`, {
       headers: {
-        Cookie: cookies || "",
+        Cookie: cookieStore.toString(),
       },
-      credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
+    return NextResponse.json(res.data, { status: res.status });
+  } catch (error) {
+    if (isAxiosError(error)) {
+      logErrorResponse(error.response?.data);
       return NextResponse.json(
-        { message: data.message || "Failed to fetch note" },
-        { status: response.status }
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
       );
     }
-
-    return NextResponse.json(data, { status: 200 });
-  } catch {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    logErrorResponse({ message: (error as Error).message });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -42,30 +38,24 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const cookies = request.headers.get("cookie");
+    const cookieStore = await cookies();
 
-    const response = await fetch(`${BACKEND_URL}/notes/${id}`, {
-      method: "DELETE",
+    const res = await api.delete(`/notes/${id}`, {
       headers: {
-        Cookie: cookies || "",
+        Cookie: cookieStore.toString(),
       },
-      credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
+    return NextResponse.json(res.data, { status: res.status });
+  } catch (error) {
+    if (isAxiosError(error)) {
+      logErrorResponse(error.response?.data);
       return NextResponse.json(
-        { message: data.message || "Failed to delete note" },
-        { status: response.status }
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
       );
     }
-
-    return NextResponse.json(data, { status: 200 });
-  } catch {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    logErrorResponse({ message: (error as Error).message });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
