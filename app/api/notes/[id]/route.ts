@@ -1,23 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { api } from '../../api';
 import { cookies } from 'next/headers';
-import { isAxiosError } from 'axios';
 import { logErrorResponse } from '../../_utils/utils';
+import { isAxiosError } from 'axios';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export async function GET(request: Request, { params }: Props) {
   try {
-    const { id } = await params;
     const cookieStore = await cookies();
-
-    const res = await api.get(`/notes/${id}`, {
+    const { id } = await params;
+    const res = await api(`/notes/${id}`, {
       headers: {
         Cookie: cookieStore.toString(),
       },
     });
-
     return NextResponse.json(res.data, { status: res.status });
   } catch (error) {
     if (isAxiosError(error)) {
@@ -32,20 +31,16 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, { params }: Props) {
   try {
-    const { id } = await params;
     const cookieStore = await cookies();
+    const { id } = await params;
 
     const res = await api.delete(`/notes/${id}`, {
       headers: {
         Cookie: cookieStore.toString(),
       },
     });
-
     return NextResponse.json(res.data, { status: res.status });
   } catch (error) {
     if (isAxiosError(error)) {
@@ -60,22 +55,17 @@ export async function DELETE(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: Props) {
   try {
-    const { id } = await params;
     const cookieStore = await cookies();
+    const { id } = await params;
     const body = await request.json();
 
     const res = await api.patch(`/notes/${id}`, body, {
       headers: {
         Cookie: cookieStore.toString(),
-        'Content-Type': 'application/json',
       },
     });
-
     return NextResponse.json(res.data, { status: res.status });
   } catch (error) {
     if (isAxiosError(error)) {
